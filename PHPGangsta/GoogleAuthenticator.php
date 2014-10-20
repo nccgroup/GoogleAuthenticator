@@ -7,6 +7,10 @@
  * @copyright 2012 Michael Kliewe
  * @license http://www.opensource.org/licenses/bsd-license.php BSD License
  * @link http://www.phpgangsta.de/
+ * 
+ * Modified by andy@burtonws.co.uk, August 2014.
+ * getQRURL() method added
+ * 
  */
 
 class PHPGangsta_GoogleAuthenticator
@@ -51,7 +55,7 @@ class PHPGangsta_GoogleAuthenticator
         $time = chr(0).chr(0).chr(0).chr(0).pack('N*', $timeSlice);
         // Hash it with users secret key
         $hm = hash_hmac('SHA1', $time, $secretkey, true);
-        // Use last nipple of result as index/offset
+        // Use last nibble of result as index/offset
         $offset = ord(substr($hm, -1)) & 0x0F;
         // grab 4 bytes of the result
         $hashpart = substr($hm, $offset, 4);
@@ -73,10 +77,22 @@ class PHPGangsta_GoogleAuthenticator
      * @param string $secret
      * @return string
      */
-    public function getQRCodeGoogleUrl($name, $secret) {
-        $urlencoded = urlencode('otpauth://totp/'.$name.'?secret='.$secret.'');
-        return 'https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl='.$urlencoded.'';
+    public function getQRCodeGoogleUrl($name, $secret)
+	{
+        return 'https://chart.googleapis.com/chart?chs=200x200&chld=M|0&cht=qr&chl=' . urlencode ($this->getQRURL ());
     }
+
+    /**
+	 * Get encoded URL for QR code
+	 * @param string $name Username, typically user@domain
+	 * @param string $secret Shared secret
+	 * @return string
+	 */
+	
+	public function getQRURL ($name, $secret)
+	{
+		return 'otpauth://totp/' . $name . '?secret=' . $secret;
+	}
 
     /**
      * Check if the code is correct. This will accept codes starting from $discrepancy*30sec ago to $discrepancy*30sec from now
